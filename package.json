@@ -1,0 +1,40 @@
+{
+  "name": "pa-flag-tool",
+  "version": "0.1.0",
+  "description": "UK Public Affairs monitoring and flag generation tool",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:reset": "rm -f data/pa-flags.db && tsx src/db/migrate.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "@azure/msal-node": "^2.16.2",
+    "better-sqlite3": "^11.7.0",
+    "express": "^4.21.1",
+    "rss-parser": "^3.13.0",
+    "node-cron": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.0",
+    "@types/node-cron": "^3.0.11",
+    "eslint": "^9.16.0",
+    "@eslint/js": "^9.16.0",
+    "typescript-eslint": "^8.18.0",
+    "typescript": "^5.7.2",
+    "tsx": "^4.19.2",
+    "vitest": "^2.1.8"
+  }
+}

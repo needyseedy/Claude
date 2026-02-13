@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PA Flag Tool</title>
+  <style>
+    :root {
+      --bg: #f8f9fa;
+      --surface: #ffffff;
+      --border: #dee2e6;
+      --text: #212529;
+      --text-muted: #6c757d;
+      --primary: #1a56db;
+      --primary-light: #e8edfc;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --warning: #d97706;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    header .status {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    header .status .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 4px;
+    }
+
+    .dot.on { background: var(--success); }
+    .dot.off { background: var(--danger); }
+
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 0;
+    }
+
+    nav button {
+      background: none;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+
+    nav button:hover { color: var(--text); }
+    nav button.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+
+    main { max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .card h3 { margin-bottom: 0.5rem; font-size: 1rem; }
+
+    .card .meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .card .content {
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    .card .actions {
+      margin-top: 0.75rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      display: inline-block;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .tag.draft { background: #fef3c7; color: var(--warning); }
+    .tag.reviewed { background: #d1fae5; color: var(--success); }
+    .tag.sent { background: #e0e7ff; color: #4338ca; }
+
+    button, .btn {
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.15s;
+    }
+
+    button:hover, .btn:hover { background: var(--bg); }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover { background: #1544b8; }
+
+    .btn-danger {
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .btn-danger:hover { background: #fef2f2; }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .toolbar h2 { font-size: 1.1rem; }
+
+    .empty {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 3rem 1rem;
+    }
+
+    textarea, input[type="text"], input[type="url"], select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      margin-bottom: 0.75rem;
+    }
+
+    textarea { min-height: 120px; resize: vertical; }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .form-group { margin-bottom: 0.75rem; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal h2 { margin-bottom: 1rem; font-size: 1.1rem; }
+
+    .modal .actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+    @media (max-width: 600px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      header { flex-direction: column; gap: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PA Flag Tool</h1>
+    <div class="status" id="status-bar">Loading...</div>
+  </header>
+
+  <nav id="nav"></nav>
+  <main id="app"></main>
+
+  <script>
+    const API = '/api';
+    let currentTab = 'flags';
+
+    // ── API helpers ────────────────────────────────────────────────
+    async function api(path, opts = {}) {
+      const res = await fetch(API + path, {
+        headers: { 'Content-Type': 'application/json' },
+        ...opts,
+        body: opts.body ? JSON.stringify(opts.body) : undefined,
+      });
+      return res.json();
+    }
+
+    // ── Render helpers ─────────────────────────────────────────────
+    function $(sel) { return document.querySelector(sel); }
+    function html(el, content) { el.innerHTML = content; }
+
+    // ── Navigation ─────────────────────────────────────────────────
+    const tabs = [
+      { id: 'flags', label: 'Flags' },
+      { id: 'developments', label: 'Developments' },
+      { id: 'sources', label: 'Sources' },
+      { id: 'topics', label: 'Client Topics' },
+      { id: 'style', label: 'Style Examples' },
+    ];
+
+    function renderNav() {
+      html($('#nav'), tabs.map(t =>
+        `<button class="${t.id === currentTab ? 'active' : ''}" onclick="switchTab('${t.id}')">${t.label}</button>`
+      ).join(''));
+    }
+
+    function switchTab(id) {
+      currentTab = id;
+      renderNav();
+      renderTab();
+    }
+
+    async function renderTab() {
+      const app = $('#app');
+      switch (currentTab) {
+        case 'flags': return renderFlags(app);
+        case 'developments': return renderDevelopments(app);
+        case 'sources': return renderSources(app);
+        case 'topics': return renderTopics(app);
+        case 'style': return renderStyleExamples(app);
+      }
+    }
+
+    // ── Health check ───────────────────────────────────────────────
+    async function checkHealth() {
+      try {
+        const h = await api('/health');
+        html($('#status-bar'), `
+          <span><span class="dot ${h.claudeConfigured ? 'on' : 'off'}"></span>Claude API</span>
+          <span><span class="dot ${h.outlookConfigured ? 'on' : 'off'}"></span>Outlook</span>
+        `);
+      } catch {
+        html($('#status-bar'), '<span>Offline</span>');
+      }
+    }
+
+    // ── Flags tab ──────────────────────────────────────────────────
+    async function renderFlags(app) {
+      const flags = await api('/flags');
+      html(app, `
+        <div class="toolbar">
+          <h2>Generated Flags</h2>
+          <div>
+            <button class="btn-primary" onclick="scanAndGenerate()">Scan & Generate</button>
+          </div>
+        </div>
+        ${flags.length === 0
+          ? '<div class="empty"><p>No flags yet.</p><p>Click "Scan & Generate" to monitor sources and create flags, or add style examples first.</p></div>'
+          : flags.map(f => `
+            <div class="card">
+              <h3>${esc(f.title)}</h3>
+              <div class="meta">
+                ${f.client_tags ? f.client_tags.split(',').map(t => `<span class="tag">${esc(t.trim())}</span>`).join(' ') : ''}
+                <span class="tag ${f.status}">${f.status}</span>
+                &middot; ${new Date(f.created_at).toLocaleString()}
+              </div>
+              <div class="content">${esc(f.content)}</div>
+              <div class="actions">
+                <button onclick="copyFlag(${f.id})">Copy</button>
+                <button onclick="markFlag(${f.id}, 'reviewed')">Mark Reviewed</button>
+                <button onclick="markFlag(${f.id}, 'sent')">Mark Sent</button>
+                <button class="btn-danger" onclick="removeFlag(${f.id})">Delete</button>
+              </div>
+            </div>
+          `).join('')
+        }
+      `);
+    }
+
+    async function scanAndGenerate() {
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = 'Scanning...';
+      try {
+        const scan = await api('/monitor/scan', { method: 'POST' });
+        btn.textContent = `Generating flags (${scan.newItems} new)...`;
+        await api('/monitor/generate-all', { method: 'POST' });
+        renderTab();
+      } catch (e) {
+        alert('Error: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Scan & Generate';
+      }
+    }
+
+    async function copyFlag(id) {
+      const flags = await api('/flags');
+      const flag = flags.find(f => f.id === id);
+      if (flag) {
+        await navigator.clipboard.writeText(flag.content);
+      }
+    }
+
+    async function markFlag(id, status) {
+      await api(`/flags/${id}`, { method: 'PATCH', body: { status } });
+      renderTab();
+    }
+
+    async function removeFlag(id) {
+      if (!confirm('Delete this flag?')) return;
+      await api(`/flags/${id}`, { method: 'DELETE' });
+      renderTab();
+    }
+
+    // ── Developments tab ───────────────────────────────────────────
+    async function renderDevelopments(app) {
+      const devs = await api('/developments?limit=200');
+      html(app, `
+        <div class="toolbar">
+          <h2>Developments</h2>
+          <button class="btn-primary" onclick="scanNow()">Scan Now</button>
+        </div>
+        ${devs.length === 0
+          ? '<div class="empty"><p>No developments detected yet. Click "Scan Now" to check sources.</p></div>'
+          : devs.map(d => `
+            <div class="card">
+              <h3>${esc(d.title)}</h3>
+              <div class="meta">
+                ${esc(d.source_name || '')} &middot; ${new Date(d.detected_at).toLocaleString()}
+                &middot; <span class="tag ${d.status}">${d.status}</span>
+              </div>
+              <div class="content">${esc(d.summary).slice(0, 300)}</div>
+              <div class="actions">
+                ${d.url ? `<a href="${esc(d.url)}" target="_blank" class="btn">Open</a>` : ''}
+                ${d.status === 'new' ? `<button class="btn-primary" onclick="genFlag(${d.id})">Generate Flag</button>` : ''}
+                ${d.status === 'new' ? `<button onclick="dismiss(${d.id})">Dismiss</button>` : ''}
+              </div>
+            </div>
+          `).join('')
+        }
+      `);
+    }
+
+    async function scanNow() {
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = 'Scanning...';
+      await api('/monitor/scan', { method: 'POST' });
+      btn.disabled = false;
+      btn.textContent = 'Scan Now';
+      renderTab();
+    }
+
+    async function genFlag(devId) {
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = 'Generating...';
+      await api(`/developments/${devId}/generate-flag`, { method: 'POST' });
+      btn.disabled = false;
+      renderTab();
+    }
+
+    async function dismiss(devId) {
+      await api(`/developments/${devId}/dismiss`, { method: 'POST' });
+      renderTab();
+    }
+
+    // ── Sources tab ────────────────────────────────────────────────
+    async function renderSources(app) {
+      const sources = await api('/sources');
+      html(app, `
+        <div class="toolbar">
+          <h2>Monitored Sources</h2>
+          <button class="btn-primary" onclick="showAddSource()">Add Source</button>
+        </div>
+        ${sources.map(s => `
+          <div class="card">
+            <h3>${esc(s.name)}</h3>
+            <div class="meta">
+              ${s.type.toUpperCase()} &middot; ${esc(s.url)}
+              ${s.last_checked_at ? ` &middot; Last checked: ${new Date(s.last_checked_at).toLocaleString()}` : ''}
+            </div>
+            <div class="actions">
+              <button onclick="toggleSrc(${s.id}, ${s.enabled ? 'false' : 'true'})">${s.enabled ? 'Disable' : 'Enable'}</button>
+              <button class="btn-danger" onclick="removeSrc(${s.id})">Delete</button>
+            </div>
+          </div>
+        `).join('')}
+        <div id="source-modal"></div>
+      `);
+    }
+
+    function showAddSource() {
+      html($('#source-modal'), `
+        <div class="modal-backdrop" onclick="if(event.target===this)closeSourceModal()">
+          <div class="modal">
+            <h2>Add Source</h2>
+            <div class="form-group">
+              <label>Name</label>
+              <input type="text" id="src-name" placeholder="e.g. Politico UK">
+            </div>
+            <div class="form-group">
+              <label>Type</label>
+              <select id="src-type">
+                <option value="rss">RSS Feed</option>
+                <option value="webpage">Webpage</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>URL</label>
+              <input type="url" id="src-url" placeholder="https://...">
+            </div>
+            <div class="actions">
+              <button onclick="closeSourceModal()">Cancel</button>
+              <button class="btn-primary" onclick="addSource()">Add</button>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    function closeSourceModal() { html($('#source-modal'), ''); }
+
+    async function addSource() {
+      const name = $('#src-name').value.trim();
+      const type = $('#src-type').value;
+      const url = $('#src-url').value.trim();
+      if (!name || !url) return alert('Name and URL are required');
+      await api('/sources', { method: 'POST', body: { name, type, url } });
+      closeSourceModal();
+      renderTab();
+    }
+
+    async function toggleSrc(id, enabled) {
+      await api(`/sources/${id}/toggle`, { method: 'PATCH', body: { enabled } });
+      renderTab();
+    }
+
+    async function removeSrc(id) {
+      if (!confirm('Delete this source?')) return;
+      await api(`/sources/${id}`, { method: 'DELETE' });
+      renderTab();
+    }
+
+    // ── Topics tab ─────────────────────────────────────────────────
+    async function renderTopics(app) {
+      const topics = await api('/topics');
+      html(app, `
+        <div class="toolbar">
+          <h2>Client Topics</h2>
+          <button class="btn-primary" onclick="showAddTopic()">Add Topic</button>
+        </div>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;">
+          Define client topics so the tool knows what to flag. Developments are matched against these topics and tagged accordingly.
+        </p>
+        ${topics.length === 0
+          ? '<div class="empty"><p>No topics defined yet. Add client topics to enable smart filtering.</p></div>'
+          : topics.map(t => `
+            <div class="card">
+              <h3>${esc(t.name)} ${!t.enabled ? '<span class="tag">disabled</span>' : ''}</h3>
+              <div class="meta">Keywords: ${esc(t.keywords) || 'none'}</div>
+              <div class="content">${esc(t.description)}</div>
+              <div class="actions">
+                <button onclick="toggleTopic(${t.id}, ${t.enabled ? 'false' : 'true'})">${t.enabled ? 'Disable' : 'Enable'}</button>
+                <button class="btn-danger" onclick="removeTopic(${t.id})">Delete</button>
+              </div>
+            </div>
+          `).join('')
+        }
+        <div id="topic-modal"></div>
+      `);
+    }
+
+    function showAddTopic() {
+      html($('#topic-modal'), `
+        <div class="modal-backdrop" onclick="if(event.target===this)closeTopicModal()">
+          <div class="modal">
+            <h2>Add Client Topic</h2>
+            <div class="form-group">
+              <label>Client / Topic Name</label>
+              <input type="text" id="topic-name" placeholder="e.g. TechCorp - AI Regulation">
+            </div>
+            <div class="form-group">
+              <label>Keywords (comma-separated)</label>
+              <input type="text" id="topic-keywords" placeholder="e.g. AI, artificial intelligence, DSIT, frontier models">
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea id="topic-desc" placeholder="Describe what this client cares about and what kind of developments to flag..."></textarea>
+            </div>
+            <div class="actions">
+              <button onclick="closeTopicModal()">Cancel</button>
+              <button class="btn-primary" onclick="addTopic()">Add</button>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    function closeTopicModal() { html($('#topic-modal'), ''); }
+
+    async function addTopic() {
+      const name = $('#topic-name').value.trim();
+      const keywords = $('#topic-keywords').value.trim();
+      const description = $('#topic-desc').value.trim();
+      if (!name) return alert('Name is required');
+      await api('/topics', { method: 'POST', body: { name, keywords, description } });
+      closeTopicModal();
+      renderTab();
+    }
+
+    async function toggleTopic(id, enabled) {
+      await api(`/topics/${id}`, { method: 'PATCH', body: { enabled } });
+      renderTab();
+    }
+
+    async function removeTopic(id) {
+      if (!confirm('Delete this topic?')) return;
+      await api(`/topics/${id}`, { method: 'DELETE' });
+      renderTab();
+    }
+
+    // ── Style Examples tab ─────────────────────────────────────────
+    async function renderStyleExamples(app) {
+      const examples = await api('/style-examples');
+      html(app, `
+        <div class="toolbar">
+          <h2>Style Examples</h2>
+          <button class="btn-primary" onclick="showAddStyle()">Add Example</button>
+        </div>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;">
+          Paste examples of your own flags here. The AI will study these to match your writing style, tone, and structure when generating new flags.
+        </p>
+        ${examples.length === 0
+          ? '<div class="empty"><p>No style examples yet. Add a few of your past flags so the AI can learn your writing style.</p></div>'
+          : examples.map(e => `
+            <div class="card">
+              <h3>${esc(e.title)}</h3>
+              ${e.notes ? `<div class="meta">${esc(e.notes)}</div>` : ''}
+              <div class="content">${esc(e.content).slice(0, 500)}${e.content.length > 500 ? '...' : ''}</div>
+              <div class="actions">
+                <button class="btn-danger" onclick="removeStyle(${e.id})">Delete</button>
+              </div>
+            </div>
+          `).join('')
+        }
+        <div id="style-modal"></div>
+      `);
+    }
+
+    function showAddStyle() {
+      html($('#style-modal'), `
+        <div class="modal-backdrop" onclick="if(event.target===this)closeStyleModal()">
+          <div class="modal">
+            <h2>Add Style Example</h2>
+            <div class="form-group">
+              <label>Title / Subject</label>
+              <input type="text" id="style-title" placeholder="e.g. AI Safety Bill - Second Reading Flag">
+            </div>
+            <div class="form-group">
+              <label>Your Flag Content</label>
+              <textarea id="style-content" style="min-height:200px" placeholder="Paste a full example of one of your flags here..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Notes (optional)</label>
+              <input type="text" id="style-notes" placeholder="e.g. Good example of urgent tone">
+            </div>
+            <div class="actions">
+              <button onclick="closeStyleModal()">Cancel</button>
+              <button class="btn-primary" onclick="addStyle()">Save</button>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    function closeStyleModal() { html($('#style-modal'), ''); }
+
+    async function addStyle() {
+      const title = $('#style-title').value.trim();
+      const content = $('#style-content').value.trim();
+      const notes = $('#style-notes').value.trim();
+      if (!title || !content) return alert('Title and content are required');
+      await api('/style-examples', { method: 'POST', body: { title, content, notes } });
+      closeStyleModal();
+      renderTab();
+    }
+
+    async function removeStyle(id) {
+      if (!confirm('Delete this style example?')) return;
+      await api(`/style-examples/${id}`, { method: 'DELETE' });
+      renderTab();
+    }
+
+    // ── Escape HTML ────────────────────────────────────────────────
+    function esc(s) {
+      if (!s) return '';
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    // ── Init ───────────────────────────────────────────────────────
+    checkHealth();
+    renderNav();
+    renderTab();
+  </script>
+</body>
+</html>
